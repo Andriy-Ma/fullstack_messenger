@@ -8,19 +8,15 @@ import { BsGithub, BsGoogle  } from 'react-icons/bs';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { signIn, useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 type Variant = 'LOGIN' | 'REGISTER';
 
 const AuthForm = () => {
-    const session = useSession(); 
+    const session = useSession();
+    const router = useRouter();
     const [variant, setVariant] = useState<Variant>('LOGIN');
     const [isLoading, setIsLoading] = useState(false);
-
-    useEffect(() => {
-      if (session?.status === 'authenticated') {
-        console.log('Authenticated')
-      }
-    }, [session?.status]);
 
     const toggleVariant = useCallback(() => {
         if (variant === 'LOGIN') {
@@ -34,7 +30,8 @@ const AuthForm = () => {
         register,
         handleSubmit,
         formState: {
-            errors
+            errors,
+            isSubmitSuccessful,
         }
     } = useForm<FieldValues>({
         defaultValues: {
@@ -44,12 +41,23 @@ const AuthForm = () => {
         }
     });
 
+    useEffect(() => {
+      if (session?.status === 'authenticated' && isSubmitSuccessful && variant !== 'LOGIN') {
+        router.push('/users');
+      }
+    }, [session?.status, router, isSubmitSuccessful, variant]);
+
     const onSubmit: SubmitHandler<FieldValues> = (data) => {
         setIsLoading(true);
 
         if (variant === 'REGISTER'){
           axios.post('/api/register', data)
+            .then(() => signIn('credentials', {
+              ...data,
+              redirect: false,
+            }))
             .catch(() => toast.error('Something went wrong!'))
+            .finally(() => setIsLoading(false));
         }
 
         if (variant === 'LOGIN'){
@@ -63,7 +71,8 @@ const AuthForm = () => {
               }
 
               if (callback?.ok && !callback?.error) {
-                toast.success('Logged in!')
+                toast.success('Logged in!');
+                router.push('/users');
               }
             })
             .finally(() => setIsLoading(false));
