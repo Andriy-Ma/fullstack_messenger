@@ -1,13 +1,11 @@
-import AuthContext from './context/AuthContext'
-import ToasterContext from './context/Toaster'
 import './globals.css'
-import { Inter } from 'next/font/google'
-
-const inter = Inter({ subsets: ['latin'] })
+import AuthContext from './context/AuthContext'
+import ActiveStatus from './components/ActiveStatus'
+import ToasterContext from './context/Toaster'
 
 export const metadata = {
-  title: 'Messenger clone',
-  description: 'Messenger clone',
+  title: 'Messenger',
+  description: 'Messenger Clone',
 }
 
 export default function RootLayout({
@@ -17,12 +15,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className} suppressHydrationWarning={true}>
+      <body>
         <AuthContext>
           <ToasterContext />
+          <ActiveStatus />
           {children}
         </AuthContext>
-        </body>
+      </body>
     </html>
   )
 }
